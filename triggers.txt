@@ -1,0 +1,70 @@
+CREATE OR REPLACE TRIGGER voter_log_out
+BEFORE INSERT or update OF AADHAR_CARD_NUMBER ON user_login_details
+FOR EACH ROW
+BEGIN
+IF (user_login_details.AADHAR_CARD_NUMBER = user_reg_details.AADHAR_CARD_NUMBER) then
+update user_login_details
+set user_login_details.AADHAR_CARD_NUMBER = user_reg_details.AADHAR_CARD_NUMBER;
+dbms_output.put_line('You last session was not logged out...');
+END IF;
+END;
+/
+
+
+=================================================
+
+CREATE OR REPLACE TRIGGER Reject
+BEFORE DELETE ON voters_details
+FOR EACH ROW
+BEGIN
+insert into report (Application_ID,VOTER_ID,AADHAR_CARD_NUMBER,FIRST_NAME,LAST_NAME,
+					GENDER,CONSTITUENCY,MOBILE_NUMBER,DATE_OF_BIRTH, CANDIDATE_VOTERS) values(:old.APPLICATION_ID,:old.VOTER_ID,:old.AADHAR_CARD,
+					:old.FIRST_NAME,
+					:old.LAST_NAME,
+					:old.GENDER,
+					:old.CONSTITUENCY,:old.MOBILE_NO,
+					:old.DATE_BIRTH, 'V');
+
+
+END;
+/
+
+CREATE OR REPLACE TRIGGER Reject_candidate
+BEFORE DELETE ON candidate_reg_details
+FOR EACH ROW
+BEGIN
+insert into report (Application_ID,
+			AADHAR_CARD_NUMBER,
+			FIRST_NAME,
+			LAST_NAME,
+			party_name,
+			TICKET_NO,
+			GENDER,
+			CONSTITUENCY,
+			DATE_OF_BIRTH, 
+			CANDIDATE_VOTERS) values(:old.candidate_ID,
+					:old.AADHAR_CARD_number,
+					:old.FIRST_NAME,
+					:old.LAST_NAME,
+					:old.party_name,
+					:old.TICKET_Number,
+					:old.GENDER,
+					:old.CONSTITUENCY,
+					:old.DATE_of_BIRTH, 'C');
+
+
+END;
+/
+
+
+
+
+CREATE OR REPLACE TRIGGER vote_count
+after update of vote_status ON user_reg_details
+FOR EACH ROW
+BEGIN
+
+delete admin_login_details
+where admin_login_details.admin_id = :old.admin_id;
+END;
+/ 

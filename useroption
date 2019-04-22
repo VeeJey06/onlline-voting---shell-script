@@ -1,0 +1,256 @@
+#!bin/bash
+function header()
+{
+echo -e "							    \e[0;32mWelcome to\e[0m"
+echo "		   "
+echo -e "					       \e[0;32m Centralized Online Voting Application \e[0m"
+echo -e "					       \e[0;32mRecognised by Election Commission of India \e[0m"
+echo -e "					      \e[0;32m******************************************** \e[0m" 
+}
+
+function user_options()
+{
+header
+echo $var
+. .TRAINenv
+name=$(sqlplus -s nusr13/nusr13<<eos
+set serveroutput on
+set feedback off
+set verify off
+declare
+var1 varchar(20);
+var2 varchar(20);
+begin
+select first_name, last_name into var1, var2 from user_login_details where voter_id = '$void';
+dbms_output.put_line(var1 ||' ' ||  var2);
+end;
+/
+eos)
+echo -e "\e[1;33mWelcome $name											VoterID : $void\e[0m"
+echo
+echo -n -e "			\e[1;35m1 -- Cast Your Vote\e[0m"
+echo 	-e "			\e[1;35m2 -- My Voterid details\e[0m"
+echo
+echo -n -e "			\e[1;35m3 -- List of Parties\e[0m"
+echo 	-e "			\e[1;35m4 -- Change Password\e[0m"
+echo
+echo -n -e "			\e[1;35m5 -- Results\e[0m"
+echo 	-e "				\e[1;35m6 -- logout\e[00m"
+echo
+echo -n -e "\e[0;32mSelect your option :\e[0m"
+read option
+elec_date=170419
+sysdate=$(date +%d%m%y)
+if [ $option == 1 ]; then
+if [ "$elec_date" -eq "$sysdate" ]; then
+echo  "You selected cast your vote, you cannot go back without voting "
+echo
+echo -n "To continue press Y, press any other to exit : "
+read con
+if [ $con == 'y' ]; then
+. .TRAINenv
+sqlplus -s nusr13/nusr13 <<eos
+set serveroutput on
+set lines 250
+set numwidth 10
+set feedback off
+set verify off
+select candidate_id, first_name, last_name, party_name, constituency || ' Constituency' from candidate_reg_details where constituency = (select location from user_login_details where voter_id = '$void') and status = 'A'
+/
+eos
+echo
+echo -n -e "\e[1;33mEnter the respective candidate Id to Cast Your vote :\e[0m"
+read vote_option
+. .TRAINenv
+re=$(sqlplus -s nusr13/nusr13 <<eos
+set serveroutput on
+set lines 250
+set numwidth 10
+set feedback off
+set verify off
+declare
+rey number;
+begin
+rey:=vote.vote_count_pro($vote_option,'$void');
+dbms_output.put_line(rey);
+end;
+/
+exit;
+eos)
+echo $re
+if [ "$re" == 1 ]; then
+clear
+header
+echo
+echo
+echo -e " \e[1;35mYour vote is casted successfully..\e[00m"
+sleep 3
+clear
+user_options
+else
+
+header
+echo -e " \e[1;35mYou vote has been casted already\e[00m"
+sleep 3
+clear
+user_options
+fi
+else
+clear
+user_options
+fi
+elif [ "$elec_date" -lt "$sysdate" ]; then
+echo -e "\e[1;31mElections are not started in your place.. Stay tunes...\e[0m"
+sleep 2
+clear
+user_options
+else
+echo  -e "\e[1;31mElections are completed in your location..\e[0m"
+echo
+echo -e  -e "\e[1;31mYou can find the results below\e[0m"
+sleep 3
+source result $loc
+fi
+sleep 2
+clear
+user_options
+
+elif [ $option == 2 ]; then
+clear
+header
+. .TRAINenv
+sqlplus -s nusr13/nusr13 <<eos
+set serveroutput on
+set feedback off
+set verify off
+exec user_details_package.voter_details('$void');
+eos
+echo
+echo
+echo -n -e "\e[0;32mPress 0 to go back to home :\e[0m"
+opt()
+{
+read op
+if [ $op == 0 ]; then
+clear
+header
+else
+echo -n -e "\e[0;31minvaid option, make a right choice (0 to home) :\e[0m"
+opt
+fi
+}
+opt
+elif [ $option == 3 ]; then
+clear
+header
+. .TRAINenv
+sqlplus -s nusr13/nusr13 <<end
+set lines 150
+set serveroutput on
+set feedback off
+set verify off
+set pages 100
+SELECT PARTY_NAME,State,District,constituency FROM candidate_reg_details order by state;
+end
+
+opt()
+{
+read op
+if [ $op == 0 ]; then
+clear
+user_options
+else
+echo
+echo
+echo -n -e "\e[1;32minvaid option, make a right choice (0 to home):\e[0m"
+opt
+fi
+}
+opt
+
+
+elif [ $option == 4 ]; then
+clear
+header
+echo -e "\e[1;33menter your old password\e[0m"
+read oldpass
+echo -e "\e[0;35menter your new password\e[0m"
+read newpass
+. .TRAINenv
+sqlplus -s nusr13/nusr13 <<end
+set serveroutput on
+set feedback off
+set verify off
+exec change_password_pkg.change_password('$void','$oldpass','$newpass')
+end
+sleep 2
+clear
+user_options
+elif [ $option == 5 ]; then
+clear
+echo
+echo
+
+if [ "$elec_date" -gt "$sysdate" ]; then
+source result $loc
+elif [ "$elec_date" -eq "$sysdate" ]; then
+echo -e "							\e[0;32mPolling is not completed yet...\e[0m"
+sleep 3
+
+user_options
+else
+echo -e "                                                       \e[0;32mElections are not started Yet...\e[0m"
+fi
+sleep 3
+user_options
+elif [ $option == 6 ]; then
+clear
+echo
+. .TRAINenv
+re=$(sqlplus -s nusr13/nusr13 <<eos
+set serveroutput on
+set feedback off
+set heading off
+declare
+v number;
+begin
+v:= user_details_package.logout('$void');
+dbms_output.put_line(v);
+end;
+/
+eos)
+if [ "$re" == 1 ]; then
+echo
+echo -e "						\e[0;32mSuccessfully Logged out...!\e[0m"
+else
+clear
+echo
+echo
+echo "							Unknown error occured while logging out....!"
+fi
+sleep 2
+exit
+else
+echo
+echo "Invalid option"
+user_options
+fi
+}
+. .TRAINenv
+void=$1
+loc=$(sqlplus -s nusr13/nusr13 <<eos
+set serveroutput on
+set feedback off
+set heading off
+declare
+v varchar(30);
+begin
+select location into v from user_login_details where voter_id = '$void';
+dbms_output.put_line(v);
+end;
+/
+eos)
+
+date '+%d%m%y' | cat > file
+clear
+user_options

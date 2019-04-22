@@ -1,0 +1,155 @@
+create or replace package user_details_package
+        is
+        procedure user_registeration_procedure(p_vid user_reg_details.voter_id%type,
+                p_aadhar user_reg_details.Aadhar_card_number%type,
+                p_f_name user_reg_details.First_name%type,
+                p_l_name user_reg_details.Last_name%type,
+                p_pass user_reg_details.password%type,
+                p_seq user_reg_details.security_question%type,
+		p_ans user_reg_details.answer%type,
+                p_gen user_reg_details.gender%type,
+                p_constituency user_reg_details.constituency%type,
+		p_dt user_reg_details.district%type,
+                p_mobile user_reg_details.Mobile_number%type,
+		p_dob user_reg_details.Date_of_birth%type,
+		p_state user_reg_details.state%type);
+
+	login_usr user_login_details%rowtype;
+	usr_passwd user_reg.password%type;
+	
+	procedure user_login_procedure(p_userid user_reg_details.voter_id%type, p_password user_reg_details.password%type);
+	
+	procedure voter_details(p_voterid in user_reg_details.voter_id%type);
+
+	type voter_type is record(voter_ID voters_details.voter_ID%type, status voters_details.status%type, aadhar voters_details.aadhar_card%type);
+	check_id voter_type;
+
+	FUNCTION validate_voter_name
+	(p_vid user_reg_details.voter_id%TYPE,p_password user_reg_details.password%TYPE) 
+	 RETURN NUMBER;
+	function logout(p_user varchar) return number;
+
+end user_details_package;
+
+create or replace package body user_details_package
+    	    is
+	procedure user_registeration_procedure(p_vid user_reg_details.voter_id%type,
+                p_aadhar user_reg_details.Aadhar_card_number%type,
+                p_f_name user_reg_details.First_name%type,
+                p_l_name user_reg_details.Last_name%type,
+                p_pass user_reg_details.password%type,
+                p_seq user_reg_details.security_question%type,
+		p_ans user_reg_details.answer%type,
+                p_gen user_reg_details.gender%type,
+                p_constituency user_reg_details.constituency%type,
+		p_dt user_reg_details.district%type,
+                p_mobile user_reg_details.Mobile_number%type,
+		p_dob user_reg_details.Date_of_birth%type,
+		p_state user_reg_details.state%type)        
+        is
+        begin
+	select voter_ID, status, aadhar_card into check_id from voters_details where voter_ID = p_vid;
+	if check_id.voter_ID = p_vid and check_id.status = 'A' and check_id.aadhar = p_aadhar then
+        insert into user_reg_details values(seq_user_reg.nextval,
+                p_vid,
+                p_aadhar,
+                p_f_name,
+                p_l_name,
+                p_pass,
+                p_seq,
+		p_ans,
+		p_dob,
+                p_gen,
+                p_constituency,
+                p_dt,
+		p_mobile,
+		p_state,
+		0);
+	dbms_output.put_line('                                       successfully registered as ' || p_vid);
+	else
+	dbms_output.put_line('                                      ' || p_vid || 'Is Not Approved yet..');
+        end if;
+
+	exception
+	when no_data_found then
+	dbms_output.put_line('  ');
+	dbms_output.put_line(' ');
+	dbms_output.put_line('                                        ' || p_vid || ' is not a valid Voter ID');
+	dbms_output.put_line(' ');
+	dbms_output.put_line(' ');
+	when dup_val_on_index then
+	dbms_output.put_line('Entered Data already exists in the database');
+	end user_registeration_procedure;
+
+	procedure user_login_procedure(p_userid user_reg_details.voter_id%type, p_password user_reg_details.password%type)
+		is
+        	begin
+        	
+		select user_id, voter_id, Aadhar_card_number, First_name, Last_name , Mobile_number, constituency into login_usr from user_reg_details where Voter_id = p_userid;
+        	insert into user_login_details values(seq_user_login.nextval,
+                	login_usr.voter_id,
+                	login_usr.aadhar_card_number,
+                	login_usr.first_name,
+                	login_usr.last_name,
+			login_usr.Mobile_number,
+			login_usr.location);
+	exception
+	when dup_val_on_index then
+	dbms_output.put_line(' ');
+	dbms_output.put_line('Your last session is not logged out... ');
+     
+	end user_login_procedure;
+
+	procedure voter_details(p_voterid in user_reg_details.voter_id%type)
+		is
+		user_details user_reg_details%rowtype;
+		begin
+		select * INTO user_details FROM user_reg_details  
+		WHERE voter_id = p_voterid;
+		DBMS_OUTPUT.PUT_LINE('Aadharcard : '||user_details.Aadhar_card_number );
+		DBMS_OUTPUT.PUT_LINE('First Name : '||user_details.First_name );
+		DBMS_OUTPUT.PUT_LINE('last Name : '||user_details.Last_name );
+		DBMS_OUTPUT.PUT_LINE('DOB : '||user_details.Date_of_birth );
+		DBMS_OUTPUT.PUT_LINE('Gender : '||user_details.Gender );
+		DBMS_OUTPUT.PUT_LINE('constituency : '||user_details.constituency );
+		DBMS_OUTPUT.PUT_LINE('Mobile : '||user_details.Mobile_number);
+		EXCEPTION
+		WHEN no_data_found THEN
+		DBMS_OUTPUT.PUT_LINE('Voter Id '||p_voterid||' is invalid');
+		END voter_details;
+	
+	FUNCTION validate_voter_name
+	(p_vid user_reg_details.voter_id%TYPE,p_password user_reg_details.password%TYPE) 
+	 RETURN NUMBER
+
+	IS
+
+	l_user_name user_reg_details.voter_id%TYPE;
+	l_password user_reg_details.password%TYPE;
+
+	BEGIN
+
+	SELECT voter_id,password
+	INTO l_user_name,l_password
+	FROM 	user_reg_details
+	WHERE voter_id = p_vid
+	AND password = p_password;
+
+	RETURN 1;
+
+	EXCEPTION
+	WHEN no_data_found THEN
+	RETURN 0;
+	
+
+	END validate_voter_name;
+	
+	function logout(p_user varchar) return number
+	is
+	begin
+	delete from user_login_details
+	where voter_id = p_user;
+	return 1;
+	end logout;
+end user_details_package;
+/

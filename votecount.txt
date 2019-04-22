@@ -1,0 +1,175 @@
+create or replace package vote
+	is
+	function vote_count_pro(cand_id number, p_vid varchar) return number;
+	var1 number;
+	procedure candidate_party_details(p_usr varchar2, x_out out number);
+	
+	type cand_ref is record(candidate_id  	number,
+				FIRST_NAME	candidate_reg_details.FIRST_NAME%type,
+				LAST_NAME	candidate_reg_details.LAST_NAME%type,
+				PARTY_NAME	candidate_reg_details.PARTY_NAME%type, 
+				CONSTITUENCY	candidate_reg_details.CONSTITUENCY%type);
+		
+	c_opt cand_ref;
+	function Know_my_s(p_aadha number, p_f_name varchar, p_l_name varchar, p_dob date, p_mob number) return varchar;
+	
+	function Result(p_const varchar) return NUMBER;
+	
+end vote;
+
+create or replace package body vote
+	IS
+
+	procedure candidate_party_details(p_usr varchar2, x_out out number)
+      	is
+	loc varchar(20);
+	CURSOR cand_cursor IS 
+	select  candidate_id, FIRST_NAME, LAST_NAME, PARTY_NAME, CONSTITUENCY
+	from candidate_reg_details
+	where CONSTITUENCY = loc;
+      	begin
+	select constituency into loc from user_reg_details where  VOTER_ID =p_usr;
+	open cand_cursor;
+	loop
+	fetch cand_cursor into c_opt;
+	exit when cand_cursor%NOTFOUND;
+	DBMS_OUTPUT.PUT_LINE(c_opt.candidate_id ||'  --  ' || c_opt.FIRST_NAME || '		'|| c_opt.LAST_NAME ||'		 		'||
+				c_opt.PARTY_NAME ||'		'||c_opt.CONSTITUENCY);
+	end loop;
+	close cand_cursor;
+	x_out:=1;
+	exception
+	when no_data_found then
+	x_out:=0;
+end candidate_party_details;
+
+function Know_my_s(p_aadha number, p_f_name varchar, p_l_name varchar, p_dob date, p_mob number) return varchar
+	is
+	type ty is record (aadhar_card_number  number(12), 
+				first_name varchar(20), 
+				last_name varchar(20), 
+				date_birth date, 
+				mobile_no number(10),
+				voter_id varchar(10));
+	val ty;
+	begin
+	select aadhar_card, first_name, last_name, date_birth, mobile_no, voter_id into val from voters_details 
+		where aadhar_card = p_aadha;
+	if val.voter_id is NULL then
+	return 1;
+	else
+ 	return val.voter_id;
+	end if;
+	exception
+	when no_data_found then
+	return 0;
+	dbms_output.put_line('Your Application in under verification by Election Commissioner');
+end Know_my_s;
+function vote_count_pro(cand_id number, p_vid varchar) return number
+      	is
+	vote_state number;
+	begin
+	select vote_status into vote_state
+	from user_reg_details where voter_id = p_vid;
+	if vote_state = 0 then
+	select VOTE_COUNT into var1
+	from candidate_reg_details
+	where CANDIDATE_ID = cand_id;
+	
+	update candidate_reg_details
+	set  VOTE_COUNT  = var1 + 1
+	where CANDIDATE_ID = cand_id;
+
+	update user_reg_details
+	set vote_status = 1
+	where voter_id = p_vid;
+	return 1;
+	else
+	dbms_output.put_line('You already casted Your vote, you can leave for the day');
+	return 0;
+	end if;
+end vote_count_pro;
+	
+	function Result(p_const in varchar, p_num in number) return NUMBER
+	is
+	cnt number;
+	cursor count 
+	begin
+	if p_num = 1 then
+	select vote_count int cnt from candidate_reg_details where constituency = p_const;
+	return cnt;
+	elsif p_num = 2 then
+	select sum(vote_count) into cnt from candidate_reg_details where party_name = 
+end vote;
+
+--------------------------------------------------------------
+select candidate_id, first_name, last_name, party_name, constituency || ' Constituency' from candidate_reg_details where constituency = (select location from user_login_details where voter_id = $void);
+exit;
+
+
+
+
+
+CREATE OR REPLACE TRIGGER adm_remove
+before delete ON admin_reg_details
+FOR EACH ROW
+BEGIN
+delete admin_login_details
+where admin_login_details.admin_id = :old.admin_id;
+END;
+/
+	
+
+
+------------------------------------------------------------
+
+
+echo -n -e "\e[1;33mEnter Your Aadhar Number :\e[0m"
+read a_nmbr
+if [ `expr length "${a_nmbr}"` != 12 ]; then
+echo -e "\e[1;35mAadhar Number must Be 12 digit !\e[0m"
+aadhar
+fi
+}
+aadhar
+count=0
+while [ "$count" -eq 0 ]
+do
+echo -n -e "\e[1;33mEnter Your First Name :\e[0m"
+read f_name
+if [ -z $f_name ]; then
+echo -e "\e[1;35mFirst  Name Cannot be NULL !\e[0m"
+else
+count=1
+fi
+done
+while [ "$count" -eq 1 ]
+do
+echo -n -e "\e[1;33mEnter Your Last Name :\e[0m"
+read l_name
+if [ -z $l_name ]; then
+echo  -e "\e[1;35mlast Name Cannot be NULL !\e[0m "
+else
+count=2
+fi
+done
+echo -n -e "\e[1;33mSelect the Date Of Birth <DD-MON-YY> :\e[0m"
+read dob
+if [ -z $dob ]; then
+echo -e "\e[0;31mInvalid Format !\e[0m"
+fi
+mobile_no()
+{
+echo -n -e  "\e[1;33mEnter Your Mobile Number :\e[0m "
+read mobile
+if [ `expr length "${mobile}"` != 10 ]; then
+echo  -e "\e[0;35mmobile number must be 10 digit !\e[0m"
+mobile_no
+fi
+}
+mobile_no
+
+
+
+
+

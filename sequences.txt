@@ -1,0 +1,34 @@
+create sequence seq_user_reg
+start with 0
+increment by 1
+minvalue 0;
+
+create sequence seq_user_login
+start with 0
+increment by 1
+minvalue 0;
+
+create sequence seq_cand_reg
+start with 0
+increment by 1
+minvalue 0;
+
+create sequence seq_adm_login
+start with 0
+increment by 1
+minvalue 0;
+
+create sequence seq_adm_reg
+start with 0
+increment by 1
+minvalue 0;
+
+create sequence seq_new_voter
+start with 0
+increment by 1
+minvalue 0;
+
+create sequence seq_comm_login
+start with 0
+increment by 1
+minvalue 0;

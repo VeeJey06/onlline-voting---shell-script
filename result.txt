@@ -1,0 +1,137 @@
+#!bin/bash
+function header()
+{
+echo
+echo
+echo -e "                                                              \e[0;32mWelcome to\e[0m"
+echo "             "
+echo -e "                                                 \e[0;32m Centralized Online Voting Application \e[0m"
+echo -e "                                                \e[0;32mRecognised by Election Commission of India \e[0m"
+echo -e "                                                \e[0;32m******************************************* \e[0m"
+echo ""
+echo -e "\e[0;33mLogin Time: \e[0m"
+date
+echo -e "\e[1;36m_____________________________________________________________________________________________________________________________________________________________ \e[0m"
+}
+
+
+
+function result()
+{
+co=$1
+
+
+location=$1
+. .TRAINenv
+res=$(sqlplus -s nusr13/nusr13 <<eos
+set serveroutput on
+set feedback off
+set verify off
+set lines 100
+set pages 1000
+set heading off
+declare
+var1 number;
+var2 number;
+fn varchar(30);
+ln varchar(30);
+begin
+select max(vote_count) into var1 from candidate_reg_details where vote_count <(select max(vote_count) from candidate_reg_details);
+select max(vote_count) into  var2 from candidate_reg_details;
+select first_name, last_name into fn, ln from candidate_reg_details where vote_count = var2;
+dbms_output.put_line(fn || ' '||ln|| ' '||to_char(var2 - var1));
+end;
+/
+eos)
+
+e=$(echo "$res" | cut -d" " -f1,2)
+b=$(echo -n "$res" | cut -d" " -f3)
+clear
+header
+echo
+echo
+echo -e "\e[1;94m                                       \e[4;33m$e\e[0m Won The Election With Majority of \e[4;33m$b\e[0m Votes in \e[4;33m$location\e[0m Constituency\e[0m"
+echo
+
+. .TRAINenv
+sqlplus -s nusr13/nusr13 <<eos
+set serveroutput on
+set feedback off
+set verify off
+set lines 100
+
+set pages 1000
+
+select party_name , first_name, last_name, vote_count
+from candidate_reg_details where constituency = '$co'
+order by vote_count desc
+
+/
+eos
+
+}
+function overall_result()
+{
+. .TRAINenv
+sqlplus -s nusr13/nusr13 <<eos
+set serveroutput on
+set feedback off
+set verify off
+set lines 100
+
+set pages 1000
+
+select party_name , constituency , sum(vote_count)
+from candidate_reg_details
+group by party_name, constituency
+order by sum(vote_count) desc
+/
+eos
+
+}
+function winner
+{
+location=$1
+. .TRAINenv
+res=$(sqlplus -s nusr13/nusr13 <<eos
+set serveroutput on
+set feedback off
+set verify off
+set lines 100
+set pages 1000
+
+declare
+var1 number;
+var2 number;
+fn varchar(30);
+ln varchar(30);
+begin
+select max(vote_count) into var1 from candidate_reg_details where vote_count <(select max(vote_count) from candidate_reg_details);
+select max(vote_count) into  var2 from candidate_reg_details;
+select first_name, last_name into fn, ln from candidate_reg_details where vote_count = var2;
+dbms_output.put_line(fn || ' '||ln|| ' '||to_char(var2 - var1));
+end;
+/
+eos)
+e=$(echo "$res" | cut -d" " -f1,2)
+b=$(echo -n "$res" | cut -d" " -f3)
+clear
+header
+echo
+echo
+echo -e "\e[1;94m                                       \e[4;33m$e\e[0m Won The Election With Majority of \e[4;33m$b\e[0m Votes in \e[4;33m$location\e[0m Constituency\e[0m"
+echo
+
+}
+
+
+
+clear
+echo "                                                                  Election Results"
+echo
+echo
+if [ -z $1 ]; then
+overall_result
+else
+result $1
+fi

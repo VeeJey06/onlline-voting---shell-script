@@ -1,0 +1,44 @@
+create or replace package candidate_details_package
+	is
+	procedure candidate_registeration(p_f_name candidate_reg_details.First_name%type,
+        	        p_l_name candidate_reg_details.Last_name%type,
+               		p_aadhar candidate_reg_details.aadhar_card_number%type,
+			p_dob candidate_reg_details.Date_of_birth%type,
+                	p_party_name candidate_reg_details.party_name%type,
+			p_dist candidate_reg_details.district%type,
+			p_constituency candidate_reg_details.constituency%type,		
+			p_state candidate_reg_details.state%type,
+			p_gender candidate_reg_details.gender%type,
+                	p_status candidate_reg_details.status%type,
+			p_tic candidate_reg_details.ticket_number%type);
+end candidate_details_package;
+
+create or replace package body candidate_details_package
+	is
+	procedure candidate_registeration(p_f_name candidate_reg_details.First_name%type,
+        	        p_l_name candidate_reg_details.Last_name%type,
+               		p_aadhar candidate_reg_details.aadhar_card_number%type,
+			p_dob candidate_reg_details.Date_of_birth%type,
+                	p_party_name candidate_reg_details.party_name%type,
+			p_dist candidate_reg_details.district%type,
+			p_constituency candidate_reg_details.constituency%type,		
+			p_state candidate_reg_details.state%type,
+			p_gender candidate_reg_details.gender%type,
+			p_status candidate_reg_details.status%type,
+			p_tic candidate_reg_details.ticket_number%type)
+       is
+       begin
+       insert into candidate_reg_details(candidate_id,ticket_number, First_name, Last_name, Aadhar_card_number, Date_of_birth, party_name, district, constituency, state, gender, status) values(seq_cand_reg.nextval,
+                p_tic,
+		p_f_name,
+                p_l_name,
+                p_aadhar,
+		p_dob,
+                p_party_name,
+                p_dist,
+		p_constituency,
+                p_state,
+                p_gender,
+		p_status);
+       end candidate_registeration;
+end candidate_details_package;

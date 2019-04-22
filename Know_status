@@ -1,0 +1,78 @@
+#!bin/bash
+aadhar()
+{
+echo -n -e "\e[1;33mEnter Your Aadhar Number :\e[0m"
+read a_nmbr
+if [ `expr length "${a_nmbr}"` != 12 ]; then
+echo -e "\e[1;35mAadhar Number must Be 12 digit !\e[0m"
+aadhar
+fi
+}
+aadhar
+count=0
+while [ "$count" -eq 0 ]
+do
+echo -n -e "\e[1;33mEnter Your First Name :\e[0m"
+read f_name
+if [ -z $f_name ]; then
+echo -e "\e[1;35mFirst  Name Cannot be NULL !\e[0m"
+else
+count=1
+fi
+done
+while [ "$count" -eq 1 ]
+do
+echo -n -e "\e[1;33mEnter Your Last Name :\e[0m"
+read l_name
+if [ -z $l_name ]; then
+echo  -e "\e[1;35mlast Name Cannot be NULL !\e[0m "
+else
+count=2
+fi
+done
+echo -n -e "\e[1;33mSelect the Date Of Birth <DD-MON-YY> :\e[0m"
+read dob
+if [ -z $dob ]; then
+echo -e "\e[0;31mInvalid Format !\e[0m"
+fi
+mobile_no()
+{
+echo -n -e  "\e[1;33mEnter Your Mobile Number :\e[0m "
+read mobile
+if [ `expr length "${mobile}"` != 10 ]; then
+echo  -e "\e[0;35mmobile number must be 10 digit !\e[0m"
+mobile_no
+fi
+}
+mobile_no
+
+. .TRAINenv
+i_d=$(sqlplus -s nusr13/nusr13 <<eos
+set serveroutput on
+set feedback off
+set numwidth 15
+declare
+id varchar(10);
+begin
+id:=vote.Know_my_s($a_nmbr,'$f_name','$l_name','$dob',$mobile);
+dbms_output.put_line(id);
+end;
+/
+eos)
+
+if [  "$i_d" == 1 ]; then
+clear
+echo
+echo
+echo -e "						 \e[1;93mYour application is Under Verification by Election Commissioner \e[0m"
+elif [ "$i_d" == 0 ]; then
+clear
+echo -e " 							\e[1;93mThe details You Entered is Invalid\e[0m"
+else
+clear
+echo
+echo -e "                                                            \e[1;93mYour voter ID is Generated and activated\e[0m"
+echo -e "					  \e[1;93mThe voter ID card will be deliverd soon to the address you mentioned while registering. \e[0m"
+echo
+echo -e "						  		     \e[1;36mYour VoterID : $i_d\e[0m"
+fi

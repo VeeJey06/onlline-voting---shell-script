@@ -1,0 +1,139 @@
+create or replace package pkg_comm_login
+	is
+	p_comm commissioner_login%rowtype;
+        p_comm_password Election_Comm_Details.password%type; 
+		
+	procedure commissioner_login_procedure(p_comm_login Election_Comm_Details.aadhar_card%type, p_pwd Election_Comm_Details.password%type);
+	
+	FUNCTION valdate_commissioner
+	(p_usr Election_Comm_Details.aadhar_card%TYPE,p_password Election_Comm_Details.password%TYPE) 
+	 RETURN NUMBER;
+	
+	procedure Approval_procedure(p_selection varchar, p_comment varchar);
+	procedure cand_Approval_procedure(p_selection varchar, p_comment varchar);
+	function logout(p_user number) return number;
+end pkg_comm_login;
+	
+
+create or replace package body pkg_comm_login
+	is
+	procedure commissioner_login_procedure(p_comm_login Election_Comm_Details.aadhar_card%type, p_pwd Election_Comm_Details.password%type)
+	is
+	begin
+	
+	select commissioner_id, first_name, last_name, aadhar_card,district, mobile_no into p_comm from Election_Comm_Details where aadhar_card = p_comm_login;
+        insert into commissioner_login values(seq_comm_login.nextval,
+                p_comm.first_name,
+                p_comm.last_name,
+		p_comm.aadhar_card,
+                p_comm.district,  	
+		p_comm.mobile_no);
+       
+        exception
+        when dup_val_on_index then
+	delete commissioner_login
+	where aadhar_card = p_comm_login;
+        dbms_output.put_line('Your last session is not logged out');
+        end commissioner_login_procedure;
+
+	procedure Approval_procedure(p_selection varchar, p_comment varchar)
+	is
+	var varchar(1);
+	v number;
+	v_idn varchar(10);
+	p_status number;
+	o_id number;
+	begin
+	v:=length(p_selection);
+	var:=substr(p_selection, v, 1);
+	o_id:=to_number(substr(p_selection, 1,length(p_selection)-1));
+	
+	if var = 'A' then
+	p_status:=o_id;
+	update voters_details
+	set status = 'A'
+	where application_id = p_status;
+	
+	v_idn:=upper(dbms_random.string('A',3)) || to_char(round(dbms_random.value(1000000,9999999)));
+	update voters_details 
+	set voter_id = v_idn
+	where application_id = p_status;
+
+	dbms_output.put_line('voter approved');
+
+	elsif var = 'R' then
+	delete from voters_details
+	where application_id = p_status;
+	update report set comments = p_comment where application_id = o_id;
+	end if;	
+
+	end  Approval_procedure;
+
+
+	procedure cand_Approval_procedure(p_selection varchar, p_comment varchar)
+	is
+	var varchar(1);
+	v number;
+	v_idn varchar(10);
+	p_status number;
+	o_id number;
+	begin
+	v:=length(p_selection);
+	var:=substr(p_selection, v, 1);
+	o_id:=to_number(substr(p_selection, 1,length(p_selection)-1));
+	
+	if var = 'A' then
+	update candidate_reg_details
+	set status = 'A'
+	where CANDIDATE_ID = o_id;
+
+	elsif var = 'R' then
+	delete from candidate_reg_details
+	where CANDIDATE_ID = o_id;
+	dbms_output.put_line('candidate rejected..!');
+	update report set comments = p_comment where application_id = o_id;
+	end if;	
+
+	end  cand_Approval_procedure;
+	
+	function logout(p_user number) return number
+	is
+	begin
+	delete from commissioner_login
+	where aadhar_card = p_user;
+	return 1;
+	end logout;
+
+	FUNCTION valdate_commissioner
+	(p_usr Election_Comm_Details.aadhar_card%TYPE,p_password Election_Comm_Details.password%TYPE) 
+	 RETURN NUMBER
+
+	IS
+
+	l_user_name Election_Comm_Details.aadhar_card%TYPE;
+	l_password Election_Comm_Details.password%TYPE;
+
+	BEGIN 
+
+	SELECT aadhar_card,password
+	INTO l_user_name,l_password
+	FROM 	Election_Comm_Details
+	WHERE aadhar_card = p_usr
+	AND password = p_password;
+	if l_user_name = p_usr then
+	commissioner_login_procedure(p_usr, p_password);
+	end if;
+	RETURN 0;
+
+	EXCEPTION
+	WHEN no_data_found THEN
+	RETURN 1;
+
+	END valdate_commissioner;
+
+
+
+
+
+end pkg_comm_login;
+/

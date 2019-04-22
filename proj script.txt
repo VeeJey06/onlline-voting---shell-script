@@ -1,0 +1,747 @@
+#!bin/bash -x
+RCol='\e[0m'
+Bla='\e[0;30m';     BBla='\e[1;30m';    UBla='\e[4;30m';    IBla='\e[0;90m';    BIBla='\e[1;90m';   On_Bla='\e[40m';    On_IBla='\e[0;100m';
+Red='\e[0;31m';     BRed='\e[1;31m';    URed='\e[4;31m';    IRed='\e[0;91m';    BIRed='\e[1;91m';   On_Red='\e[41m';    On_IRed='\e[0;101m';
+Gre='\e[0;32m';     BGre='\e[1;32m';    UGre='\e[4;32m';    IGre='\e[0;92m';    BIGre='\e[1;92m';   On_Gre='\e[42m';    On_IGre='\e[0;102m';
+Yel='\e[0;33m';     BYel='\e[1;33m';    UYel='\e[4;33m';    IYel='\e[0;93m';    BIYel='\e[1;93m';   On_Yel='\e[43m';    On_IYel='\e[0;103m';
+Blu='\e[0;34m';     BBlu='\e[1;34m';    UBlu='\e[4;34m';    IBlu='\e[0;94m';    BIBlu='\e[1;94m';   On_Blu='\e[44m';    On_IBlu='\e[0;104m';
+Pur='\e[0;35m';     BPur='\e[1;35m';    UPur='\e[4;35m';    IPur='\e[0;95m';    BIPur='\e[1;95m';   On_Pur='\e[45m';    On_IPur='\e[0;105m';
+Cya='\e[0;36m';     BCya='\e[1;36m';    UCya='\e[4;36m';    ICya='\e[0;96m';    BICya='\e[1;96m';   On_Cya='\e[46m';    On_ICya='\e[0;106m';
+Whi='\e[0;37m';     BWhi='\e[1;37m';    UWhi='\e[4;37m';    IWhi='\e[0;97m';    BIWhi='\e[1;97m';   On_Whi='\e[47m';
+
+clear
+function header()
+{
+echo
+echo
+echo -e "                                                              \e[0;32mWelcome to\e[0m"
+echo "             "
+echo -e "                                                 \e[0;32m Centralized Online Voting Application \e[0m"
+echo -e "                                                \e[0;32mRecognised by Election Commission of India \e[0m"
+echo -e "                                                \e[0;32m******************************************* \e[0m"
+echo ""
+echo -e "\e[0;33mLogin Time: \e[0m"
+date
+echo -e "\e[1;36m_____________________________________________________________________________________________________________________________________________________________ \e[0m"
+}
+
+function main_title()
+{
+header
+sleep 0.5
+echo
+echo -n -e "                                                          \e[0;33mVote\e[0m"
+sleep 0.2
+echo -n -e " \e[0;33mOn\e[0m"
+sleep 0.2
+echo -n -e " \e[0;33mThe\e[0m"
+sleep 0.2
+echo  -e " \e[0;33mGo\e[0m"
+echo
+echo -n -e "                                             \e[0;33mWelcome to Online Voting Facility\e[0m"
+for i in 1 2 3 4 5
+do
+echo -n "."
+sleep 0.2
+done
+echo
+}
+
+function main_choice()
+{
+echo -n -e "\e[0;36m Would you like to Continue ? [Y/N] :\e[0m"
+read main_choice_yn
+if [ $main_choice_yn == 'Y' ] || [ $main_choice_yn == 'y' ]; then
+user_name='nusr13'
+pass_word='nusr13'
+clear
+home
+elif [ $main_choice_yn == 'N' ] || [ $main_choice_yn == 'n' ]; then
+clear
+echo
+echo
+echo -e "                                                          \e[0;32mThank you...!\e[0m"
+echo
+echo
+exit
+elif  [ $main_choice_yn != 'Y' ] && [  $main_choice_yn != 'n' ] && [  $main_choice_yn != 'y' ]  &&  [  $main_choice_yn != 'N' ]; then
+echo "invalid option"
+main_choice
+fi
+}
+
+
+function db_connectivity()
+{
+echo -en '\n'
+echo -e "\e[0;31m Database Connectivity\e[0m"
+echo -e "\e[0;31m *********************\e[0m"
+sleep .9s
+echo -n "Enter The DB User Name : "
+read user_name
+if [ -z $user_name ]; then
+echo -n "User Name Cannot be NULL ! "
+exit
+fi
+echo -n "Enter the  Password : "
+read -s pass_word
+if [ -z $pass_word ]; then
+echo -n "Password Cannot be NULL ! "
+exit
+fi
+if [ $user_name  == $pass_word ]; then
+
+
+echo -en '\n'
+. .TRAINenv
+sqlplus -s $user_name/$pass_word<<END
+SET FEEDBACK OFF
+SET SERVEROUTPUT ON
+
+EXECUTE dbms_output.put_line('Successful Login to DB........');
+exit;
+END
+echo -en '\n'
+sleep 2
+clear
+else
+echo
+sleep .5s
+echo " Wrong Password"
+sleep .9s
+echo " Enter The Right Password "
+sleep .9s
+db_connectivity
+fi
+
+}
+
+function option()
+{
+read opt
+if [ $opt == 1 ]; then
+exit
+elif [ $opt == 0 ]; then
+home
+else
+echo -e "\e[0;31mInvalid Option !! (Choose 1 or 0)\e[0m"
+option
+fi
+}
+
+
+
+function voter_reg()
+{
+clear
+header
+echo -en '\n'
+v_voterid()
+{
+echo -n -e "\e[1;33mEnter Your Voter ID :\e[0m"
+read vo_id
+if [ `expr length "${vo_id}"` != 10 ]; then
+echo -e "\e[1;35mVoter ID must be 10 digit !\e[0m"
+v_voterid
+fi
+}
+v_voterid
+aadhar()
+{
+echo -n -e "\e[1;33mEnter Your Aadhar Number :\e[0m"
+read a_nmbr
+if [ `expr length "${a_nmbr}"` != 12 ]; then
+echo -e "\e[1;35mAadhar Number must Be 12 digit !\e[0m"
+aadhar
+fi
+}
+aadhar
+count=0
+while [ "$count" -eq 0 ]
+do
+echo -n -e "\e[1;33mEnter Your First Name :\e[0m"
+read f_name
+if [ -z $f_name ]; then
+echo -e "\e[1;35mFirst  Name Cannot be NULL !\e[0m"
+else
+count=1
+fi
+done
+while [ "$count" -eq 1 ]
+do
+echo -n -e "\e[1;33mEnter Your Last Name :\e[0m"
+read l_name
+if [ -z $l_name ]; then
+echo  -e "\e[1;35mlast Name Cannot be NULL !\e[0m "
+else
+count=2
+fi
+done
+while [ "$count" -eq 2 ]
+do
+echo -n -e "\e[1;33mSelect the Gender <F/M> :\e[0m "
+read gender
+if [ -z $gender ]; then
+echo -e "\e[0;31mInvalid Gender !\e[0m"
+else
+count=3
+fi
+done
+echo -n -e "\e[1;33mSelect the Date Of Birth <DD-MON-YYYY> :\e[0m"
+read dob
+if [ -z $dob ]; then
+echo -e "\e[0;31mInvalid Date !\e[0m"
+fi
+mobile_no()
+{
+echo -n -e  "\e[1;33mEnter Your Mobile Number :\e[0m "
+read mobile
+if [ `expr length "${mobile}"` != 10 ]; then
+echo  -e "\e[0;35mmobile number must be 10 digit !\e[0m"
+mobile_no
+fi
+}
+mobile_no
+echo -e "\e[0;35mSelect a Security Question :\e[0m"
+a="a -- Your Pet Name"
+echo $a
+b="b -- Your Spouse/Wife Name"
+echo $b
+c="c -- Your First Crush Name"
+echo $c
+d="d -- Your Childhood Hero"
+echo $d
+read sec_ch
+if [ $sec_ch == a ]; then
+sec=$a
+elif [ $sec_ch == b ]; then
+sec=$b
+elif [ $sec_ch == c ]; then
+sec=$c
+elif [ $sec_ch == d ]; then
+sec=$d
+fi
+while [ "$count" -eq 3 ]
+do
+echo -n -e "\e[1;32mEnter your answer :\e[0m"
+read ans
+if [ -z $ans ]; then
+echo -e "\e[1;31mAnswer cannot be null\e[0m"
+else
+count=4
+fi
+done
+
+source state.sh
+
+echo  -e "\e[1;33mEnter the Password :\e[0m"
+read -s passwd1
+if [ -z $passwd1 ]; then
+echo  -e "\e[1;35mPassword Cannot be NULL !\e[0m"
+fi
+echo  -e "\e[1;32mConfirm Password\e[0m"
+read -s passwd2
+if [ -z $passwd2 ]; then
+echo  -e "\e[1;35mPassword Cannot be NULL !\e[0m"
+elif [ $passwd1 == $passwd2 ]; then
+
+. .TRAINenv
+sqlplus -s $user_name/$pass_word<<eos
+SET SERVEROUTPUT ON
+SET FEEDBACK OFF
+SET VERIFY OFF
+exec user_details_package.user_registeration_procedure('$vo_id',  $a_nmbr, '$f_name', '$l_name', '$passwd2', '$sec','$ans','$gender', '$co','$dt',$mobile, '$dob','$st');
+eos
+sleep 2
+echo -e "\e[0;32m1 -- Login page\e[0m"
+echo -e "\e[0;32m 0 -- Home page\e[0m"
+option
+function option()
+{
+read opt
+if [ $opt == 1 ]; then
+voter_login
+elif [ $opt == 0 ]; then
+home
+else
+echo -e "\e[0;31mInvalid Choice ! (Choose 1 or 0)"
+option
+fi
+}
+option
+
+else
+clear
+echo "Unmatched password"
+voter_reg
+fi
+}
+
+function candidate_registration()
+{
+clear
+header
+echo -en '\n'
+ticket()
+{
+echo -n -e "\e[1;33mEnter the Ticket Number :\e[0m"
+read tckt_no
+if [ `expr length "${tckt_no}"` != 7 ]; then
+echo  -e "\e[1;35mTicket number must be 7 digit !\e[0m"
+ticket
+fi
+}
+ticket
+c=0
+while [ "$c" -eq 0 ]
+do
+echo -n -e "\e[1;33mEnter the Candidate First Name :\e[0m"
+read c_fname
+if [ -z $c_fname ]; then
+echo  -e "\e[1;35mCandidate name  Cannot be NULL !\e[0m"
+else
+c=1
+fi
+done
+while [ "$c" -eq 1 ]
+do
+echo -n -e "\e[1;33mEnter the Candidate Last Name :\e[0m"
+read c_lname
+if [ -z $c_lname ]; then
+echo  -e "\e[1;35mCandidate name  Cannot be NULL !\e[0m"
+else
+c=2
+fi
+done
+aadhar()
+{
+echo -n -e "\e[1;33mEnter the Candidate's Aadhar Card No. :\e[0m"
+read c_aadhar
+if [ `expr length "${c_aadhar}"` != 12 ]; then
+echo  -e "\e[1;35mCandidate's Aadhar Card No. must be 12 digit !\e[0m"
+aadhar
+fi
+}
+aadhar
+echo -n -e "\e[1;33mEnter Your Date of Birth : (DD-MON-YY)\e[0m"
+read DOB
+user_date1=2019-04-05
+age=$((($(($(date -d $user_date1 '+%s') - $(date -d $DOB  '+%s'))) / 86400)/365))
+echo $age
+if [ "$age" -lt 18 ]; then
+echo -e "\e[0;33myou are not eligible for Nomination and Vote\e[0m "
+elif [ "$age" -gt 60 ]; then
+echo -e "\e[0;33myou are not eligible for Nomination and  vote\e[0m "
+else
+echo -e "\e[0;33myou are eligible for Nomination and vote\e[0m"
+
+fi
+while [ "$c" -eq 2 ]
+do
+echo -n -e "\e[1;33mEnter the Candidate's Gender (M/F) :\e[0m"
+read gender
+if [ -z $gender ]; then
+echo  -e "\e[1;35mgender  Cannot be NULL !\e[0m"
+else
+c=3
+fi
+done
+source state.sh
+while [ "$c" -eq 3 ]
+do
+echo -n -e "\e[1;33mEnter the Candidate's Party Name :\e[0m"
+read c_pname
+if [ -z $c_pname ]; then
+echo -e "\e[1;35mParty Name cannot be NULL !\e[0m"
+else
+c=4
+fi
+done
+. .TRAINenv
+sqlplus -s $user_name/$pass_word<<end
+SET NUMWIDTH  15
+SET SERVEROUTPUT ON
+SET FEEDBACK OFF
+SET VERIFY OFF
+set lines 500
+exec candidate_details_package.candidate_registeration('$c_fname','$c_lname',$c_aadhar,'$DOB','$c_pname','$dt','$co','$st','$gender','NA','$tckt_no')
+end
+
+function pay()
+{
+echo -e "\e[0;32m1)Credit Card\e[0m"
+echo -e "\e[0;32m2)Debit Card\e[0m"
+read card
+if [ $card == 1 ]; then
+echo -e "\e[1;33mEnter your Credit card Number:\e[0m "
+read card_no
+echo -e "\e[1;33mName on card:\e[0m"
+read card_name
+echo -e "\e[1;33mExpiry date (mm/yy) :\e[0m"
+read exp
+echo -e "\e[1;33mEnter your CVV :\e[0m"
+read cvv
+elif [ $card == 2 ]; then
+echo -e "\e[1;33mEnter your Debit card Number:\e[0m "
+read debit_no
+echo -e "\e[1;33mName on card:\e[0m"
+read debit_name
+echo -e "\e[1;33mExpiry date (mm/yy) :\e[0m"
+read exp
+echo -e "\e[1;33mEnter your CVV :\e[0m"
+read cvv
+fi
+exit
+}
+
+
+
+
+
+
+echo -e "\e[0;32mregisteration successfull...\e[0m"
+echo -e "\e[0;32m1 -- exit\e[0m"
+echo -e "\e[0;32m0 -- home\e[0m"
+
+
+
+option
+}
+function admin_reg()
+{
+clear
+header
+echo -e "\e[0;35mAdministrator Registration Page -->\e[0m"
+echo
+a=0
+while [ "$a" -eq 0 ]
+do
+echo -e "\e[1;33mEnter your first name :\e[0m"
+read a_name
+if [ -z $a_name ];then
+echo -e "\e[1;35mFirst name cannot be null : !\e[0m"
+else
+a=1
+fi
+done
+while [ "$a" -eq 1 ]
+do
+echo  -e "\e[1;33mEnter your Last name :\e[0m"
+read b_name
+if [ -z $b_name ];then
+echo -e "\e[1;35mLast name cannot be null : !\e[0m"
+else
+a=2
+fi
+done
+a_aadhar()
+{
+echo -e "\e[1;33mEnter your Aadhar Number :\e[0m"
+read aadhar_num
+if [ `expr length "${aadhar_num}"` != 12 ]; then
+echo -e "\e[1;35mAadhar Number must be 12 digit !\e[0m"
+a_aadhar
+fi
+}
+a_aadhar
+
+echo -e "\e[1;33mEnter the  location :\e[0m"
+source state.sh
+mobile()
+{
+echo -e "\e[1;33mEnter your mobile number :\e[0m"
+read mb_no
+if [ `expr length "${mb_no}"` != 10 ]; then
+echo -e "\e[1;35mMobile number must be 10 digit !\e[0m"
+mobile
+fi
+}
+mobile
+email()
+{
+echo -e "\e[1;33m Enter your Email ID :\e[0m"
+read email
+if echo "${email}" | grep '^[a-zA-Z0-9]*@[a-zA-Z0-9]*\.[a-zA-Z0-9]*$' >/dev/null; then
+echo "Entered Email is valid"
+else
+echo "Entered Email is Invalid"
+email
+fi
+}
+email
+echo -e "\e[1;35mEnter your password :\e[0m"
+read -s  pssd
+echo -e "\e[1;34mConfirm Password\e[0m"
+read -s pssd2
+if [ -z $pssd2 ]; then
+echo -e "\e[1;35mPassword Cannot be NULL !\e[0m "
+admin_reg
+elif [ $pssd == $pssd2 ]; then
+. .TRAINenv
+sqlplus -s $user_name/$pass_word<<end
+SET FEEDBACK OFF
+SET VERIFY OFF
+exec admin_details_package.admin_registeration_details('$a_name','$b_name',$aadhar_num,'$pssd','$co',$mb_no, '$email')
+end
+fi
+echo -e "\e[0;32mregisteration successfull...\e[0m"
+echo -e "\e[0;32m1 -- exit\e[0m"
+echo -e "\e[0;32m0 -- home\e[0m"
+option
+}
+
+
+
+
+
+function admin_login()
+{
+clear
+header
+echo -en '\n'
+l_aadhar()
+{
+echo -n -e "\e[1;33mEnter your aadhar number  :\e[0m"
+read aadhar_no
+if [ `expr length "${aadhar_no}"` != 12 ];then
+echo -e "\e[1;35mAadhar number must be 12 digit : !\e[0m"
+l_aadhar
+fi
+}
+l_aadhar
+echo -n -e "\e[1;33mEnter the Password :\e[0m"
+read -s pass_wd
+if [ -z $pass_wd ]; then
+echo -n -e "\e[1;35mPassword Cannot be NULL !\e[0m"
+fi
+validate=$(. .TRAINenv
+sqlplus -s $user_name/$pass_word <<eof
+SET FEEDBACK OFF
+SET VERIFY OFF
+SET NUMWIDTH 15
+SET SERVEROUTPUT ON
+DECLARE
+l_result number;
+l_user_name   admin_reg_details.aadhar_card_number%TYPE:=$aadhar_no;
+l_password  admin_reg_details.password%TYPE:='$pass_wd';
+BEGIN
+
+l_result:=admin_details_package.validate_admin_login(l_user_name,l_password );
+dbms_output.put_line(l_result);
+END;
+/
+exit
+eof)
+echo $validate
+if [ "$validate" == 1 ]; then
+source ad2
+elif [ "$validate" == 0 ]; then
+echo -e "\e[0;31minvalid user...!!!\e[0m"
+fi
+
+echo -e "\e[0;32m1 -- exit\e[0m"
+echo -e "\e[0;32m0 -- home\e[0m"
+option
+}
+
+function welcome()
+{
+clear
+header
+echo -e "\e[1;36mRegister/Login as ------->\e[0m "
+echo
+echo -e "\e[1;32m1 -- Voter\e[0m"
+echo
+echo -e "\e[1;32m2 -- Candidate Registration\e[0m"
+echo
+echo -e "\e[1;32m3 -- Administrator\e[0m"
+echo
+echo -n -e "\e[0;33mEnter your Desired Choice :\e[0m"
+read ch
+if [ $main_choice_yn == 'Y' ] || [ $main_choice_yn == 'y' ] && [ $ch == 1 ]; then
+clear
+header
+echo -e "\e[1;35m 1 -- Voter Registration\e[0m"
+echo
+echo -e "\e[1;35m2 -- Voter Login\e[0m"
+echo -e "\e[0;33mPlease Choose the Preferred Option :\e[0m"
+read vo
+if [ $vo == 1 ]; then
+clear
+voter_reg
+elif [ $vo == 2 ]; then
+clear
+voter_login
+fi
+elif [ $main_choice_yn == 'Y' ] || [ $main_choice_yn == 'y' ] &&  [ $ch == 2 ]; then
+clear
+candidate_registration
+elif [ $main_choice_yn == 'Y' ] || [ $main_choice_yn == 'y' ] &&  [ $ch == 3 ]; then
+clear
+echo    -e "\e[0;33mPlease Choose the Preferred Option :\e[0m"
+echo    -e "\e[1;35m1 -- Admin Registration\e[0m"
+echo
+echo   -e "\e[1;35m 2 -- Admin Log-In Page\e[0m"
+read rd
+if [ $rd == 1 ]; then
+admin_reg
+elif [ $rd == 2 ]; then
+admin_login
+else
+sleep .9
+echo -e "\e[0;31mWrong Input !\e[0m"
+welcome
+fi
+fi
+}
+function voter_login()
+{
+clear
+header
+echo -e "\e[0;32mYour Username is your voter Id\e[0m"
+voterid()
+{
+echo -n -e "\e[1;33mEnter your Voter ID :\e[0m"
+read u_name
+if [ `expr length "${u_name}"` != 10 ]; then
+echo  -e "\e[0;31mVoterid must be 10 digits !\e[0m"
+voterid
+fi
+}
+voterid
+echo -n -e "\e[1;33mEnter the Password :\e[0m "
+read u_pass
+
+. .TRAINenv
+validate=$(sqlplus -s nusr13/nusr13  <<eos
+set serveroutput on
+set feedback off
+set verify off
+exec dbms_output.put_line(user_details_package.validate_voter_name('$u_name','$u_pass'));
+exit;
+eos)
+echo $validate
+if [ "$validate" == 1 ]; then
+header
+clear
+. .TRAINenv
+sqlplus -s nusr13/nusr13 <<eos
+set serveroutput on
+set feedback off
+set verify off
+exec user_details_package.user_login_procedure('$u_name','$u_pass');
+exit;
+eos
+sleep 3
+clear
+sh useroption $u_name
+else
+echo -e "\e[0;31minvalid username/Password...!!!\e[0m"
+fi
+echo -e "\e[0;35m1 -- Login Again\e[0m"
+echo -e "\e[0;35m2 -- Register a New User\e[0m"
+echo -e "\e[0;35m0 -- Home Page\e[0m"
+echo -e "\e[0;35m9 -- Exit Application\e[0m"
+function option
+{
+echo -n -e "\e[0;33m Choose your desired Option :\e[0m"
+read in
+if [ $in == 1 ]; then
+voter_login
+elif [ $in == 2 ]; then
+voter_reg
+elif [ $in == 0 ]; then
+clear
+home
+elif [ $in == 9 ]; then
+clear
+echo "                                                          Thank You...!"
+exit
+else
+echo -e "\e[0;31mInvalid option\e[0m"
+option
+fi
+}
+option
+}
+
+function home()
+{
+clear
+header
+
+echo -e "               \e[0;36m1 -- Registration/Login                                                 2 -- Help Information\e[0m"
+echo
+echo -e "               \e[0;36m3 -- Know Your Rights                                                   4 -- Know Your Application Status\e[0m"
+echo
+echo -e "               \e[0;36m5 -- Apply for a New Voter ID                                           6 -- Feedback\e[0m"
+echo
+echo -e "               \e[0;36m7 -- Results                                                            8 --Exit Application\e[0m"                           
+echo
+echo -n -e "            \e[0;33mEnter your Desired Choice :\e[0m"
+read choice
+if [ $choice == 1 ]; then
+welcome
+elif [ $choice == 2 ]; then
+source contact
+source exit
+elif [ $choice == 3 ]; then
+
+sh rights
+echo -e "\e[0;32mselect (1) for exiting from application and (0) for home page\e[0m"
+echo -e "\e[0;32m1 -- exit\e[0m"
+echo -e "\e[0;32m0 -- home\e[0m"
+
+function option()
+{
+read opt
+if [ $opt == 1 ]; then
+exit
+elif [ $opt == 0 ]; then
+home
+else
+echo -e "\e[0;31mInvalid Option !! (Choose 1 or 0)\e[0m"
+option
+fi
+}
+option
+
+elif [ $choice == 4 ]; then
+sh Know_status
+
+echo -e "\e[0;32m1 -- exit\e[0m"
+echo -e "\e[0;32m0 -- home\e[0m"
+option
+fi
+
+if [ $choice == 5 ]; then
+
+sh sc
+
+echo -e "\e[0;32m1 -- exit\e[0m"
+echo -e "\e[0;32m0 -- home\e[0m"
+
+option
+
+
+elif [ $choice == 6 ]; then
+sh pt.sh
+elif [$choice == 7 ];then
+source result
+echo "x party has won the election"
+elif [ $choice == 8 ]; then
+clear
+header
+echo
+echo -e "                                                       \e[0;32mThank You...\e[0m"
+echo
+sleep 2
+clear
+exit
+fi
+}
+
+main_title
+echo -en '\n'
+main_choice
+echo -en '\n'
